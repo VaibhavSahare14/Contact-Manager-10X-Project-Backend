@@ -2,10 +2,10 @@ const { verify } = require('jsonwebtoken')
 const user = require('../Models/user');
 
 const validateToken = (req, res, next) => {
-    const accessToken = req.header("accessToken")
+    const accessToken = req.header("token")
 
     if (!accessToken) {
-        return res.json({ message: "User not Logged In" })
+        return res.status(400).json({ message: "User not Logged In" })
     }
 
     try {

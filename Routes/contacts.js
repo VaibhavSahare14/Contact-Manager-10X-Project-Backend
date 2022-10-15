@@ -10,14 +10,6 @@ const bodyParser = require('body-parser');
 router.use(bodyParser.urlencoded({ extended: false }))
 router.use(bodyParser.json())
 
-// router.post("/contacts", async (req, res) => {
-//     console.log(req.body);
-//     // try {
-//     //     console.log(req.body);
-//     // } catch (err) {
-//     //     res.status(400).json({ message: err.message });
-//     // }
-// });
 
 
 /*---------------GET USERNAME---------------*/
@@ -27,22 +19,22 @@ router.get("/username", validateToken, async (req, res) => {
 });
 
 /*---------------GET ONE PAGE DATA(Contacts for one page)---------------*/
-router.get("/all", validateToken, async (req, res) => {
-    try {
-        const { page } = req.query;
+// router.get("/all", validateToken, async (req, res) => {
+//     try {
+//         const { page } = req.query;
 
-        const data = await contacts.find({ userId: req.user }).limit(10).skip((page - 1) * 10);
-        res.json(data);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+//         const data = await contacts.find({ userId: req.user }).limit(10).skip((page - 1) * 10);
+//         res.json(data);
+//     } catch (err) {
+//         res.status(400).json({ message: err.message });
+//     }
+// });
 
 /*---------------GET ALL CONTACTS---------------*/
 router.get("/alldata", validateToken, async (req, res) => {
     try {
         const data = await contacts.find({ userId: req.user })
-        res.json(data);
+        res.status(200).json(data);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
@@ -50,42 +42,42 @@ router.get("/alldata", validateToken, async (req, res) => {
 
 
 /*---------------ADD NEW DETAILS---------------*/
-router.post("/add", validateToken, async (req, res) => {
-    console.log(req.body);
+router.post("/add", validateToken  ,cors(), async (req, res) => {
+    // console.log(req.body);
     try {
-        let input = Array.isArray(req.body);
-
-        if (input) {
-            let lists = req.body;
-            lists.map(async (user) => {
-                const data = await contacts.create({
-                    Name: user.name,
-                    Designation: user.designation,
-                    Company: user.company,
-                    Industry: user.industry,
-                    Email: user.email,
-                    PhoneNumber: user.phonenumber,
-                    Country: user.country,
-                    userId: req.user,
-                });
-            });
-            res.json({ message: "success" });
-        } else {
-            const data = await contacts.create({
-                Name: req.body.name,
-                Designation: req.body.designation,
-                Company: req.body.company,
-                Industry: req.body.industry,
-                Email: req.body.email,
-                PhoneNumber: req.body.phonenumber,
-                Country: req.body.country,
-                userId: req.user,
-            });
-            res.json({ message: "success" });
+        let data = await contacts.find({ userId: req.user });
+        console.log(req.body);
+        
+        // console.log(data);
+        if (data.length>0) {
+        //   console.log("hello")
+          data = await contacts.find({ userId: req.user }).updateOne(
+            {},
+            {
+              $push: {
+                contact: req.body,
+              },
+            }
+          );
+        } 
+        else {
+            console.log("hello")
+          data = await contacts.create({
+            contact: req.body,
+            userId: req.user,
+          });
         }
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+        res.status(200).json({
+          status: "Sucess",
+          message: data,
+        });
+      } catch (error) {
+        res.status(500).json({
+          status: "Failed",
+          message: error.message,
+        });
+      }
+   
 });
 
 /*---------------DELETE ALL DATA OF A PAGE---------------*/

@@ -6,40 +6,73 @@ const { body, validationResult } = require('express-validator')
 var jwt = require('jsonwebtoken');
 router.use(express.json())
 
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body
+// router.post('/login', async (req, res) => {
+//     const { email, password } = req.body
+//     console.log(email,password)
 
-    try {
-        const data = await users.findOne({ email: email })
-        if (!data) {
-            return res.status(400).json({ message: "USER NOT REGISTERED" })
-        } else {
-            bcrypt.compare(password, data.password, async function (err, result) {
-                if (err) {
-                    return res.status(500).json({ message: err.message })
-                }
-                if (result) {
-                    const token = jwt.sign({
-                        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60),
-                        data: data._id
-                    }, process.env.SECRET);
-                    return res.status(200).json({ message: "Success", token })
-                } else {
-                    res.json({ message: "Incorrect Password" })
-                }
-            });
-        }
+//     try {
+//         const data = await users.findOne({ email: email })
+//         if (data!==null) {
+//             return res.status(400).json({ message: "USER NOT REGISTERED" })
+//         } else {
+//             bcrypt.compare(password, data.password, async function (err, result) {
+//                 if (err) {
+//                     return res.status(500).json({ message: err.message })
+//                 }
+//                 if (result) {
+//                     const token = jwt.sign({
+//                         exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60),
+//                         data: data._id
+//                     }, process.env.SECRET);
+//                     return res.status(200).json({ message: "Success", token })
+//                 } else {
+//                     res.json({ message: "Incorrect Password" })
+//                 }
+//             });
+//         }
 
-    } catch (err) {
-        res.status(500).json({
-            status: "failed",
-            message: err.message
-        })
+//     } catch (err) {
+//         res.status(500).json({
+//             status: "failed",
+//             message: err.message
+//         })
+//     }
+// })
+router.post("/login", async (req, res) => {
+    const {email,password}=req.body;
+    const userData = await users.findOne({ email: email });
+    if (userData != null) {
+      var result = await bcrypt.compare(password, userData.password);
+      if (result) {
+        const token = jwt.sign(
+          {
+            exp: Math.floor(Date.now() / 10) + 60 * 60,
+            data: userData._id,
+          },
+          process.env.SECRET
+        );
+        res.status(200).json({
+          Status: "Successful",
+          token: token,
+        });
+      } else {
+        res.status(400).json({
+          status: "failed",
+          message: "Wrong Password",
+        });
+      }
+    } else {
+      res.status(400).json({
+        status: "failed",
+        message: "No user Found",
+      });
     }
-})
+  });
 
 router.post('/register', body('email').isEmail(), body('password').isLength(min = 6, max = 16), async (req, res) => {
+    
     const { email, password } = req.body
+    console.log(email,password)
     try {
         const error = validationResult(req)
         if (!error.isEmpty()) {
@@ -61,6 +94,7 @@ router.post('/register', body('email').isEmail(), body('password').isLength(min 
                 email,
                 password: hash
             })
+            console.log(data)
             res.status(200).json({
                 status: "success",
                 message: "Registration Successful"
