@@ -14,17 +14,26 @@ router.use(bodyParser.json())
 
 /*---------------GET USERNAME---------------*/
 router.get("/username", validateToken, async (req, res) => {
+    
     const data = await user.findOne({ _id: req.user });
     res.json(data);
 });
 
 /*---------------GET ONE PAGE DATA(Contacts for one page)---------------*/
-// router.get("/all", validateToken, async (req, res) => {
+// router.get("/dataPerPage", validateToken, async (req, res) => {
 //     try {
-//         const { page } = req.query;
-
-//         const data = await contacts.find({ userId: req.user }).limit(10).skip((page - 1) * 10);
-//         res.json(data);
+//         const { page } = parseInt(req.query);
+//         const limit=3;
+//         const start=(page-1)*limit;
+//         const end =page*limit;
+//         const data = await contacts.find({ userId: req.user });
+//         // const newdata=data.slice(start,end);
+//         // console.log(data)
+//       res.json({data,
+//         start,
+//         end
+//       }
+//        );
 //     } catch (err) {
 //         res.status(400).json({ message: err.message });
 //     }
@@ -81,23 +90,41 @@ router.post("/add", validateToken  ,cors(), async (req, res) => {
 });
 
 /*---------------DELETE ALL DATA OF A PAGE---------------*/
-router.post("/delete", validateToken, async (req, res) => {
-    try {
-        const datas = req.body;
-        if (datas.length > 0) {
-            const data = await contacts.find({ userId: req.user });
-            if (data) {
-                datas.map(async (ids) => {
-                    await contacts.deleteOne({ _id: ids.id });
-                });
-                res.json({ message: "success", data });
-            }
-        } else {
-            res.json("not deleted");
-        }
-    } catch (e) {
-        res.status(400).json({ message: err.message });
-    }
+// router.post("/delete", validateToken, async (req, res) => {
+//     try {
+//         const datas = req.body;
+//         if (datas.length > 0) {
+//             const data = await contacts.find({ userId: req.user });
+//             if (data) {
+//                 datas.map(async (ids) => {
+//                     await contacts.deleteOne({ _id: ids.id });
+//                 });
+//                 res.json({ message: "success", data });
+//             }
+//         } else {
+//             res.json("not deleted");
+//         }
+//     } catch (e) {
+//         res.status(400).json({ message: err.message });
+//     }
+// });
+router.delete("/delete/:id",validateToken, async (req, res) => {
+  
+  try {
+    let data = await contacts.updateOne(
+      { userId: req.user },
+      { $pull: { contact: { _id: req.params.id } } }
+    );
+    res.status(200).json({
+      status: "Sucess",
+      message: data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Delete Failed",
+      message: error.message,
+    });
+  }
 });
 
 /*---------------DELETE SELECTED DATA---------------*/
