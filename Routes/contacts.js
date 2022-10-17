@@ -108,8 +108,7 @@ router.post("/add", validateToken  ,cors(), async (req, res) => {
 //         res.status(400).json({ message: err.message });
 //     }
 // });
-router.delete("/delete/:id",validateToken, async (req, res) => {
-  
+router.delete("/delete/:id",validateToken, async (req, res) => { 
   try {
     let data = await contacts.updateOne(
       { userId: req.user },
@@ -127,22 +126,5 @@ router.delete("/delete/:id",validateToken, async (req, res) => {
   }
 });
 
-/*---------------DELETE SELECTED DATA---------------*/
-router.post("/sdelete", validateToken, async (req, res) => {
-    try {
-        const datas = req.body;
-        if (datas[0].id != "" && datas.length > 0) {
-            const data = await contacts.find({ userId: req.user });
-            if (data) {
-                datas.map(async (ids) => {
-                    await contacts.deleteOne({ _id: ids.id });
-                });
-                res.json({ message: "success", data });
-            }
-        }
-    } catch (e) {
-        res.status(400).json({ message: err.message });
-    }
-});
 
 module.exports = router;
